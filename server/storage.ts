@@ -1,8 +1,12 @@
 import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category } from "@shared/schema";
+import { users, brands, reviews, categories } from "@shared/schema";
+import { db } from "./db";
+import { eq, like, or, and } from "drizzle-orm";
 import session from "express-session";
-import createMemoryStore from "memorystore";
+import connectPg from "connect-pg-simple";
+import { pool } from "./db";
 
-const MemoryStore = createMemoryStore(session);
+const PostgresStore = connectPg(session);
 
 export interface IStorage {
   // User operations
@@ -33,138 +37,124 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private brands: Map<number, Brand>;
-  private reviews: Map<number, Review>;
-  private categories: Map<number, Category>;
-  private currentIds: { [key: string]: number };
+export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.users = new Map();
-    this.brands = new Map();
-    this.reviews = new Map();
-    this.categories = new Map();
-    this.currentIds = { users: 1, brands: 1, reviews: 1, categories: 1 };
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
-    });
-
-    // Initialize with some categories
-    const defaultCategories = [
-      "Gymwear",
-      "Home Appliances",
-      "Accessories",
-      "Beauty Products",
-      "Fashion",
-      "Food & Beverages",
-      "Tech Gadgets",
-      "Art & Crafts",
-    ];
-
-    defaultCategories.forEach((name) => {
-      this.createCategory({ name });
+    this.sessionStore = new PostgresStore({
+      pool,
+      createTableIfMissing: true,
     });
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentIds.users++;
-    const user = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async getBrand(id: number): Promise<Brand | undefined> {
-    return this.brands.get(id);
+    const [brand] = await db.select().from(brands).where(eq(brands.id, id));
+    return brand;
   }
 
   async getBrandByInstagramHandle(handle: string): Promise<Brand | undefined> {
-    return Array.from(this.brands.values()).find(
-      (brand) => brand.instagramHandle === handle,
-    );
+    const [brand] = await db
+      .select()
+      .from(brands)
+      .where(eq(brands.instagramHandle, handle));
+    return brand;
   }
 
   async getBrands(): Promise<Brand[]> {
-    return Array.from(this.brands.values());
+    return await db.select().from(brands);
   }
 
   async getBrandsByCategory(categoryId: number): Promise<Brand[]> {
-    return Array.from(this.brands.values()).filter(
-      (brand) => brand.categoryId === categoryId,
-    );
+    return await db
+      .select()
+      .from(brands)
+      .where(eq(brands.categoryId, categoryId));
   }
 
   async searchBrands(query: string): Promise<Brand[]> {
-    const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.brands.values()).filter(
-      (brand) =>
-        brand.name.toLowerCase().includes(lowercaseQuery) ||
-        brand.instagramHandle.toLowerCase().includes(lowercaseQuery),
-    );
+    const searchQuery = `%${query.toLowerCase()}%`;
+    return await db
+      .select()
+      .from(brands)
+      .where(
+        or(
+          like(brands.name, searchQuery),
+          like(brands.instagramHandle, searchQuery)
+        )
+      );
   }
 
   async createBrand(insertBrand: InsertBrand): Promise<Brand> {
-    const id = this.currentIds.brands++;
-    const now = new Date();
-    const brand = { ...insertBrand, id, createdAt: now };
-    this.brands.set(id, brand);
+    const [brand] = await db.insert(brands).values(insertBrand).returning();
     return brand;
   }
 
   async getReview(id: number): Promise<Review | undefined> {
-    return this.reviews.get(id);
+    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
+    return review;
   }
 
   async getReviewsByBrand(brandId: number): Promise<Review[]> {
-    return Array.from(this.reviews.values()).filter(
-      (review) => review.brandId === brandId,
-    );
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.brandId, brandId));
   }
 
   async getUserReviewForBrand(
     userId: number,
-    brandId: number,
+    brandId: number
   ): Promise<Review | undefined> {
-    return Array.from(this.reviews.values()).find(
-      (review) => review.userId === userId && review.brandId === brandId,
-    );
+    const [review] = await db
+      .select()
+      .from(reviews)
+      .where(
+        and(eq(reviews.userId, userId), eq(reviews.brandId, brandId))
+      );
+    return review;
   }
 
   async createReview(
-    review: InsertReview & { userId: number },
+    review: InsertReview & { userId: number }
   ): Promise<Review> {
-    const id = this.currentIds.reviews++;
-    const now = new Date();
-    const newReview = { ...review, id, createdAt: now };
-    this.reviews.set(id, newReview);
+    const [newReview] = await db.insert(reviews).values(review).returning();
     return newReview;
   }
 
   async getCategory(id: number): Promise<Category | undefined> {
-    return this.categories.get(id);
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, id));
+    return category;
   }
 
   async getCategories(): Promise<Category[]> {
-    return Array.from(this.categories.values());
+    return await db.select().from(categories);
   }
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.currentIds.categories++;
-    const category = { ...insertCategory, id };
-    this.categories.set(id, category);
+    const [category] = await db
+      .insert(categories)
+      .values(insertCategory)
+      .returning();
     return category;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
