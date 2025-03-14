@@ -108,9 +108,10 @@ export default function AuthPage() {
               <TabsContent value="register">
                 <Form {...registerForm}>
                   <form
-                    onSubmit={registerForm.handleSubmit((data) =>
-                      registerMutation.mutate(data)
-                    )}
+                    onSubmit={registerForm.handleSubmit((data) => {
+                      console.log('Submitting registration:', data);
+                      registerMutation.mutate(data);
+                    })}
                     className="space-y-4"
                   >
                     <div>
@@ -118,6 +119,11 @@ export default function AuthPage() {
                         placeholder="Username"
                         {...registerForm.register("username")}
                       />
+                      {registerForm.formState.errors.username && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {registerForm.formState.errors.username.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <Input
@@ -125,12 +131,22 @@ export default function AuthPage() {
                         placeholder="Password"
                         {...registerForm.register("password")}
                       />
+                      {registerForm.formState.errors.password && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {registerForm.formState.errors.password.message}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <Input
                         placeholder="Instagram Handle"
                         {...registerForm.register("instagramHandle")}
                       />
+                      {registerForm.formState.errors.instagramHandle && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {registerForm.formState.errors.instagramHandle.message}
+                        </p>
+                      )}
                     </div>
                     <Button
                       type="submit"
