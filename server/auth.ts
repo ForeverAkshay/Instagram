@@ -68,11 +68,14 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
+      console.log('Registration request:', { ...req.body, password: '[REDACTED]' });
+
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
-        return res.status(400).send("Username already exists");
+        console.log('Registration failed: Username already exists');
+        return res.status(400).json({ error: "Username already exists" });
       }
 
       const hashedPassword = await hashPassword(req.body.password);
@@ -81,10 +84,12 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
       });
 
+      console.log('User created successfully:', { id: user.id, username: user.username });
+
       req.login(user, (err) => {
         if (err) {
           console.error('Login after registration error:', err);
-          return next(err);
+          return res.status(500).json({ error: "Failed to log in after registration" });
         }
         res.status(201).json(user);
       });
