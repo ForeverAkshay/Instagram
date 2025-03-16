@@ -22,7 +22,7 @@ import {
 import { Plus } from "lucide-react";
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>();
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: categories } = useQuery<Category[]>({
@@ -32,7 +32,7 @@ export default function HomePage() {
   const { data: brands } = useQuery({
     queryKey: [
       "/api/brands",
-      selectedCategory && `categoryId=${selectedCategory}`,
+      selectedCategory && selectedCategory !== "all" && `categoryId=${selectedCategory}`,
       searchQuery && `q=${searchQuery}`,
     ].filter(Boolean),
   });
