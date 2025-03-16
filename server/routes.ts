@@ -17,20 +17,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Brands
   app.get("/api/brands", async (req, res) => {
     try {
+      console.log('Brands request params:', req.query);
+
       const categoryId = req.query.categoryId
         ? parseInt(req.query.categoryId as string)
         : undefined;
       const query = req.query.q as string | undefined;
 
+      console.log('Parsed params:', { categoryId, query });
+
       let brands;
       if (categoryId) {
+        console.log('Fetching brands by category:', categoryId);
         brands = await storage.getBrandsByCategory(categoryId);
       } else if (query) {
+        console.log('Searching brands:', query);
         brands = await storage.searchBrands(query);
       } else {
+        console.log('Fetching all brands');
         brands = await storage.getBrands();
       }
 
+      console.log('Found brands:', brands.length);
       res.json(brands);
     } catch (error) {
       console.error('Error fetching brands:', error);
