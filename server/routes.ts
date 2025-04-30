@@ -16,26 +16,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Brands
   app.get("/api/brands", async (req, res) => {
-    try {
-      const categoryId = req.query.categoryId
-        ? parseInt(req.query.categoryId as string)
-        : undefined;
-      const query = req.query.q as string | undefined;
+    const categoryId = req.query.categoryId
+      ? parseInt(req.query.categoryId as string)
+      : undefined;
+    const query = req.query.q as string | undefined;
 
-      let brands;
-      if (categoryId) {
-        brands = await storage.getBrandsByCategory(categoryId);
-      } else if (query) {
-        brands = await storage.searchBrands(query);
-      } else {
-        brands = await storage.getBrands();
-      }
-
-      res.json(brands);
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-      res.status(500).json({ error: "Failed to fetch brands" });
+    let brands;
+    if (categoryId) {
+      brands = await storage.getBrandsByCategory(categoryId);
+    } else if (query) {
+      brands = await storage.searchBrands(query);
+    } else {
+      brands = await storage.getBrands();
     }
+
+    res.json(brands);
   });
 
   app.get("/api/brands/:id", async (req, res) => {
