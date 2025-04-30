@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Category, Brand } from "@shared/schema";
+import { Category } from "@shared/schema";
 import BrandSearch from "@/components/brands/brand-search";
 import BrandCard from "@/components/brands/brand-card";
 import BrandForm from "@/components/brands/brand-form";
@@ -22,18 +22,18 @@ import {
 import { Plus } from "lucide-react";
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: categories } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
-  const { data: brands } = useQuery<Brand[]>({
+  const { data: brands } = useQuery({
     queryKey: [
       "/api/brands",
-      selectedCategory !== "all" ? `categoryId=${selectedCategory}` : null,
-      searchQuery ? `q=${searchQuery}` : null,
+      selectedCategory && selectedCategory !== "all" && `categoryId=${selectedCategory}`,
+      searchQuery && `q=${searchQuery}`,
     ].filter(Boolean),
   });
 
