@@ -31,11 +31,11 @@ export default function BrandForm() {
     defaultValues: {
       name: "",
       instagramHandle: "",
-      categoryId: undefined,
+      categoryId: 0, // Set a default numeric value instead of undefined
     },
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
   });
 
@@ -82,7 +82,7 @@ export default function BrandForm() {
 
         <div>
           <Select
-            value={form.watch("categoryId")?.toString()}
+            value={form.watch("categoryId")?.toString() || "0"}
             onValueChange={(value) => form.setValue("categoryId", parseInt(value))}
           >
             <SelectTrigger>

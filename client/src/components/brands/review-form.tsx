@@ -83,7 +83,7 @@ export default function ReviewForm({ brandId }: { brandId: number }) {
       >
         <div>
           <Select
-            value={form.watch("rating")?.toString()}
+            value={form.watch("rating")?.toString() || "5"}
             onValueChange={(value) => form.setValue("rating", parseInt(value))}
           >
             <SelectTrigger>
