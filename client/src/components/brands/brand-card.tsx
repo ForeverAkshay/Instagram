@@ -49,13 +49,13 @@ export default function BrandCard({ brand }: { brand: Brand }) {
               {reviews?.slice(0, 2).map((review) => (
                 <div key={review.id} className="space-y-2">
                   <div className="text-sm text-gray-600">
-                    {review.comment.length > 100
-                      ? review.comment.substring(0, 97) + "..."
-                      : review.comment}
+                    {review.reviewText.length > 100
+                      ? review.reviewText.substring(0, 97) + "..."
+                      : review.reviewText}
                   </div>
-                  {review.photoUrl && (
+                  {review.imageUrl && (
                     <img 
-                      src={review.photoUrl} 
+                      src={review.imageUrl} 
                       alt="Review photo" 
                       className="mt-2 max-h-32 rounded-md" 
                     />
