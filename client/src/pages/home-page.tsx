@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Category } from "@shared/schema";
+import { Brand, Category } from "@shared/schema";
 import BrandSearch from "@/components/brands/brand-search";
 import BrandCard from "@/components/brands/brand-card";
 import BrandForm from "@/components/brands/brand-form";
@@ -29,12 +29,28 @@ export default function HomePage() {
     queryKey: ["/api/categories"],
   });
 
-  const { data: brands } = useQuery({
-    queryKey: [
-      "/api/brands",
-      selectedCategory && `categoryId=${selectedCategory}`,
-      searchQuery && `q=${searchQuery}`,
-    ].filter(Boolean),
+  // Create a proper API query string with parameters
+  const getQueryString = () => {
+    const params = new URLSearchParams();
+    
+    if (selectedCategory && selectedCategory !== "all") {
+      params.append("categoryId", selectedCategory);
+    }
+    
+    if (searchQuery) {
+      params.append("q", searchQuery);
+    }
+    
+    const queryString = params.toString();
+    return queryString ? `/api/brands?${queryString}` : "/api/brands";
+  };
+
+  const { data: brands } = useQuery<Brand[]>({
+    queryKey: ["/api/brands", selectedCategory, searchQuery],
+    queryFn: async () => {
+      const response = await fetch(getQueryString());
+      return response.json();
+    },
   });
 
   return (
@@ -93,9 +109,18 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {brands?.map((brand) => (
+          {brands?.map((brand: Brand) => (
             <BrandCard key={brand.id} brand={brand} />
           ))}
+          {brands?.length === 0 && (
+            <div className="col-span-full text-center py-12 text-gray-500">
+              {searchQuery ? (
+                <p>No brands found matching "{searchQuery}". Try a different search term or add this brand.</p>
+              ) : (
+                <p>No brands found. Add a brand to get started!</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
