@@ -13,7 +13,7 @@ import Navbar from "@/components/ui/navbar";
 import { useAuth } from "@/hooks/use-auth";
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   
   return (
     <>

@@ -23,7 +23,7 @@ export default function Navbar() {
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={user ? "/" : "/auth"} className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               InstaShop Review
             </span>
@@ -31,11 +31,13 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/">
-              <span className={`text-sm ${isActive("/") ? "font-semibold text-purple-600" : "text-gray-600 hover:text-purple-500"}`}>
-                Home
-              </span>
-            </Link>
+            {user && (
+              <Link href="/">
+                <span className={`text-sm ${isActive("/") ? "font-semibold text-purple-600" : "text-gray-600 hover:text-purple-500"}`}>
+                  Home
+                </span>
+              </Link>
+            )}
             <Link href="/about">
               <span className={`text-sm ${isActive("/about") ? "font-semibold text-purple-600" : "text-gray-600 hover:text-purple-500"}`}>
                 About Us
@@ -80,13 +82,15 @@ export default function Navbar() {
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pt-4 border-t">
             <ul className="space-y-4">
-              <li>
-                <Link href="/" onClick={closeMenu}>
-                  <span className={`block py-2 ${isActive("/") ? "font-semibold text-purple-600" : "text-gray-600"}`}>
-                    Home
-                  </span>
-                </Link>
-              </li>
+              {user && (
+                <li>
+                  <Link href="/" onClick={closeMenu}>
+                    <span className={`block py-2 ${isActive("/") ? "font-semibold text-purple-600" : "text-gray-600"}`}>
+                      Home
+                    </span>
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/about" onClick={closeMenu}>
                   <span className={`block py-2 ${isActive("/about") ? "font-semibold text-purple-600" : "text-gray-600"}`}>
