@@ -27,15 +27,15 @@ type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
 export default function ReviewForm({ brandId }: { brandId: number }) {
   const { toast } = useToast();
-  const [photoUrl, setPhotoUrl] = useState<string>();
+  const [imageUrl, setImageUrl] = useState<string>();
 
   const form = useForm<ReviewFormData>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
       brandId,
       rating: 5,
-      comment: "",
-      photoUrl: "",
+      reviewText: "",
+      imageUrl: "",
     },
   });
 
@@ -102,7 +102,7 @@ export default function ReviewForm({ brandId }: { brandId: number }) {
         <div>
           <Textarea
             placeholder="Write your review..."
-            {...form.register("comment")}
+            {...form.register("reviewText")}
           />
         </div>
 
