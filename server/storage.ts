@@ -1,8 +1,12 @@
-import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category } from "@shared/schema";
+import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category, users, brands, reviews, categories } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { db, pool } from "./db";
+import { eq, ilike, and, or } from "drizzle-orm";
+import connectPgSimple from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
+const PgSessionStore = connectPgSimple(session);
 
 export interface IStorage {
   // User operations
@@ -167,4 +171,134 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  sessionStore: session.Store;
+
+  constructor() {
+    this.sessionStore = new PgSessionStore({
+      pool,
+      createTableIfMissing: true
+    });
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getBrand(id: number): Promise<Brand | undefined> {
+    const [brand] = await db.select().from(brands).where(eq(brands.id, id));
+    return brand;
+  }
+
+  async getBrandByInstagramHandle(handle: string): Promise<Brand | undefined> {
+    const [brand] = await db.select().from(brands).where(eq(brands.instagramHandle, handle));
+    return brand;
+  }
+
+  async getBrands(): Promise<Brand[]> {
+    return db.select().from(brands);
+  }
+
+  async getBrandsByCategory(categoryId: number): Promise<Brand[]> {
+    return db.select().from(brands).where(eq(brands.categoryId, categoryId));
+  }
+
+  async searchBrands(query: string): Promise<Brand[]> {
+    return db.select().from(brands).where(
+      or(
+        ilike(brands.name, `%${query}%`),
+        ilike(brands.instagramHandle, `%${query}%`)
+      )
+    );
+  }
+
+  async createBrand(insertBrand: InsertBrand): Promise<Brand> {
+    const [brand] = await db.insert(brands).values(insertBrand).returning();
+    return brand;
+  }
+
+  async getReview(id: number): Promise<Review | undefined> {
+    const [review] = await db.select().from(reviews).where(eq(reviews.id, id));
+    return review;
+  }
+
+  async getReviewsByBrand(brandId: number): Promise<Review[]> {
+    return db.select().from(reviews).where(eq(reviews.brandId, brandId));
+  }
+
+  async getUserReviewForBrand(userId: number, brandId: number): Promise<Review | undefined> {
+    const [review] = await db.select().from(reviews).where(
+      and(
+        eq(reviews.userId, userId),
+        eq(reviews.brandId, brandId)
+      )
+    );
+    return review;
+  }
+
+  async createReview(review: InsertReview & { userId: number }): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
+    return newReview;
+  }
+
+  async getCategory(id: number): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category;
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return db.select().from(categories);
+  }
+
+  async createCategory(insertCategory: InsertCategory): Promise<Category> {
+    const [category] = await db.insert(categories).values(insertCategory).returning();
+    return category;
+  }
+
+  // Helper method to create initial default categories
+  async createDefaultCategories(): Promise<void> {
+    const defaultCategories = [
+      "Gymwear",
+      "Home Appliances",
+      "Accessories",
+      "Beauty Products",
+      "Fashion",
+      "Food & Beverages",
+      "Tech Gadgets",
+      "Art & Crafts",
+    ];
+
+    // Check if categories already exist
+    const existingCategories = await this.getCategories();
+    if (existingCategories.length === 0) {
+      // Create categories in parallel
+      await Promise.all(
+        defaultCategories.map(name => this.createCategory({ name }))
+      );
+    }
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();
+
+// Initialize default categories
+(async () => {
+  try {
+    await storage.createDefaultCategories();
+    console.log("Default categories created or verified");
+  } catch (error) {
+    console.error("Error creating default categories:", error);
+  }
+})();
