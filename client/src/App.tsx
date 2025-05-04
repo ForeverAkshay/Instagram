@@ -6,15 +6,26 @@ import { AuthProvider } from "@/hooks/use-auth";
 import NotFound from "@/pages/not-found";
 import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
+import AboutPage from "@/pages/about-page";
+import ContactPage from "@/pages/contact-page";
 import { ProtectedRoute } from "./lib/protected-route";
+import Navbar from "@/components/ui/navbar";
+import { useAuth } from "@/hooks/use-auth";
 
-function Router() {
+function AppRoutes() {
+  const { user } = useAuth();
+  
   return (
-    <Switch>
-      <ProtectedRoute path="/" component={HomePage} />
-      <Route path="/auth" component={AuthPage} />
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <Navbar />
+      <Switch>
+        <ProtectedRoute path="/" component={HomePage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
 }
 
@@ -22,7 +33,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
+        <AppRoutes />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>

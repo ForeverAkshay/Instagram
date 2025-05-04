@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { z } from "zod";
 import { useEffect } from "react";
 
@@ -53,12 +53,16 @@ export default function AuthPage() {
         <div className="flex flex-col justify-center space-y-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Instagram Brand Reviews
+              InstaShop Review
             </h1>
             <p className="mt-4 text-gray-600">
               Discover and review authentic Instagram brands. Share your experiences
               and help others make informed decisions.
             </p>
+            <div className="mt-6 flex space-x-4">
+              <Link href="/about" className="text-purple-600 hover:underline">About Us</Link>
+              <Link href="/contact" className="text-purple-600 hover:underline">Contact</Link>
+            </div>
           </div>
         </div>
 

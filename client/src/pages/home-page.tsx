@@ -58,11 +58,11 @@ export default function HomePage() {
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              Instagram Brand Reviews
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Discover Instagram Brands
             </h1>
             <p className="mt-2 text-gray-600">
-              Discover and review authentic Instagram brands
+              Search, review, and explore authentic Instagram businesses
             </p>
           </div>
 
