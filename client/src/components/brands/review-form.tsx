@@ -43,7 +43,7 @@ export default function ReviewForm({ brandId }: { brandId: number }) {
     mutationFn: async (data: ReviewFormData) => {
       const res = await apiRequest("POST", `/api/brands/${brandId}/reviews`, {
         ...data,
-        photoUrl,
+        imageUrl,
       });
       return res.json();
     },
@@ -70,7 +70,7 @@ export default function ReviewForm({ brandId }: { brandId: number }) {
     // Create a data URL for the uploaded image
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPhotoUrl(reader.result as string);
+      setImageUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -112,9 +112,9 @@ export default function ReviewForm({ brandId }: { brandId: number }) {
             accept="image/*"
             onChange={handlePhotoUpload}
           />
-          {photoUrl && (
+          {imageUrl && (
             <img
-              src={photoUrl}
+              src={imageUrl}
               alt="Review photo preview"
               className="mt-2 max-h-40 rounded-md"
             />

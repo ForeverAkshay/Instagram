@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertBrandSchema } from "@shared/schema";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -31,6 +32,9 @@ export default function BrandForm() {
     defaultValues: {
       name: "",
       instagramHandle: "",
+      description: "",
+      logoUrl: "",
+      websiteUrl: "",
       categoryId: 0, // Set a default numeric value instead of undefined
     },
   });
@@ -96,6 +100,27 @@ export default function BrandForm() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        
+        <div>
+          <Input
+            placeholder="Website URL (optional)"
+            {...form.register("websiteUrl")}
+          />
+        </div>
+        
+        <div>
+          <Input
+            placeholder="Logo URL (optional)"
+            {...form.register("logoUrl")}
+          />
+        </div>
+        
+        <div>
+          <Textarea
+            placeholder="Brand Description"
+            {...form.register("description")}
+          />
         </div>
 
         <div className="flex justify-end gap-2">
