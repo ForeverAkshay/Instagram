@@ -47,10 +47,19 @@ export default function BrandCard({ brand }: { brand: Brand }) {
             <h3 className="font-medium mb-2">Recent Reviews</h3>
             <div className="space-y-2">
               {reviews?.slice(0, 2).map((review) => (
-                <div key={review.id} className="text-sm text-gray-600">
-                  {review.comment.length > 100
-                    ? review.comment.substring(0, 97) + "..."
-                    : review.comment}
+                <div key={review.id} className="space-y-2">
+                  <div className="text-sm text-gray-600">
+                    {review.comment.length > 100
+                      ? review.comment.substring(0, 97) + "..."
+                      : review.comment}
+                  </div>
+                  {review.photoUrl && (
+                    <img 
+                      src={review.photoUrl} 
+                      alt="Review photo" 
+                      className="mt-2 max-h-32 rounded-md" 
+                    />
+                  )}
                 </div>
               ))}
             </div>
