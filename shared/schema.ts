@@ -1,7 +1,7 @@
 import { pgTable, text, serial, integer, timestamp, real, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -104,3 +104,10 @@ export type User = typeof users.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type Category = typeof categories.$inferSelect;
+export const contactMessages = pgTable("contact_messages", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+});

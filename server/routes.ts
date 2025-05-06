@@ -2,7 +2,14 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertBrandSchema, insertReviewSchema } from "@shared/schema";
+import { insertBrandSchema, insertReviewSchema, contactMessages } from "@shared/schema";
+import { z } from "zod";
+
+const contactMessageSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  message: z.string().min(10),
+});
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -91,3 +98,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+// Contact Messages
+  app.post("/api/contact", async (req, res) => {
+    const parseResult = contactMessageSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json(parseResult.error);
+    }
+    
+    const message = await storage.db.insert(contactMessages).values(parseResult.data).returning();
+    res.status(201).json(message[0]);
+  });
+
+  app.get("/api/contact", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+    const messages = await storage.db.select().from(contactMessages).orderBy(contactMessages.createdAt);
+    res.json(messages);
+  });

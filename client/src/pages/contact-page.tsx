@@ -36,9 +36,17 @@ export default function ContactPage() {
     setIsSubmitting(true);
     
     try {
-      // Here you would normally send the data to a server endpoint
-      // For now we'll just simulate a successful submission
-      console.log("Form submitted:", data);
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
       
       // Show success toast
       toast({
