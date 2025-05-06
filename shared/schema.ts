@@ -100,14 +100,25 @@ export type InsertBrand = z.infer<typeof insertBrandSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
-export type User = typeof users.$inferSelect;
-export type Brand = typeof brands.$inferSelect;
-export type Review = typeof reviews.$inferSelect;
-export type Category = typeof categories.$inferSelect;
+// Contact Messages
 export const contactMessages = pgTable("contact_messages", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
   message: text("message").notNull(),
-  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const insertContactMessageSchema = createInsertSchema(contactMessages).pick({
+  name: true,
+  email: true,
+  message: true,
+});
+
+export type InsertContactMessage = z.infer<typeof insertContactMessageSchema>;
+export type ContactMessage = typeof contactMessages.$inferSelect;
+
+export type User = typeof users.$inferSelect;
+export type Brand = typeof brands.$inferSelect;
+export type Review = typeof reviews.$inferSelect;
+export type Category = typeof categories.$inferSelect;
