@@ -102,13 +102,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json(parseResult.error);
     }
     
-    const message = await storage.db.insert(contactMessages).values(parseResult.data).returning();
-    res.status(201).json(message[0]);
+    // Use the db import directly instead of trying to access it through storage
+    const message = await storage.createContactMessage(parseResult.data);
+    res.status(201).json(message);
   });
 
   app.get("/api/contact", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    const messages = await storage.db.select().from(contactMessages).orderBy(contactMessages.createdAt);
+    const messages = await storage.getContactMessages();
     res.json(messages);
   });
 
