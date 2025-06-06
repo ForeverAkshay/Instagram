@@ -1,4 +1,4 @@
-import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category, ReviewWithUser, users, brands, reviews, categories } from "@shared/schema";
+import { InsertUser, InsertBrand, InsertReview, InsertCategory, InsertContactMessage, User, Brand, Review, Category, ContactMessage, ReviewWithUser, users, brands, reviews, categories, contactMessages } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { db, pool } from "./db";
@@ -33,6 +33,10 @@ export interface IStorage {
   getCategories(): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
 
+  // Contact message operations
+  getContactMessages(): Promise<ContactMessage[]>;
+  createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+
   // Session store
   sessionStore: session.Store;
 }
@@ -42,6 +46,7 @@ export class MemStorage implements IStorage {
   private brands: Map<number, Brand>;
   private reviews: Map<number, Review>;
   private categories: Map<number, Category>;
+  private contactMessages: Map<number, ContactMessage>;
   private currentIds: { [key: string]: number };
   sessionStore: session.Store;
 
@@ -50,7 +55,8 @@ export class MemStorage implements IStorage {
     this.brands = new Map();
     this.reviews = new Map();
     this.categories = new Map();
-    this.currentIds = { users: 1, brands: 1, reviews: 1, categories: 1 };
+    this.contactMessages = new Map();
+    this.currentIds = { users: 1, brands: 1, reviews: 1, categories: 1, contactMessages: 1 };
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000,
     });
@@ -189,6 +195,20 @@ export class MemStorage implements IStorage {
     const category = { ...insertCategory, id, createdAt: now };
     this.categories.set(id, category);
     return category;
+  }
+
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return Array.from(this.contactMessages.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
+    const id = this.currentIds.contactMessages++;
+    const now = new Date();
+    const message = { ...insertMessage, id, createdAt: now };
+    this.contactMessages.set(id, message);
+    return message;
   }
 }
 
