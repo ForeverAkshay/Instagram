@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Brand, Review } from "@shared/schema";
+import { Brand, ReviewWithUser } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import ReviewForm from "./review-form";
 import { StarIcon } from "lucide-react";
 
 export default function BrandCard({ brand }: { brand: Brand }) {
-  const { data: reviews } = useQuery<Review[]>({
+  const { data: reviews } = useQuery<ReviewWithUser[]>({
     queryKey: [`/api/brands/${brand.id}/reviews`],
   });
 
@@ -48,6 +48,20 @@ export default function BrandCard({ brand }: { brand: Brand }) {
             <div className="space-y-2">
               {reviews?.slice(0, 2).map((review) => (
                 <div key={review.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
+                      <span className="text-sm font-medium">{review.rating}</span>
+                    </div>
+                    <a
+                      href={`https://instagram.com/${review.userInstagramHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:underline"
+                    >
+                      @{review.userInstagramHandle}
+                    </a>
+                  </div>
                   <div className="text-sm text-gray-600">
                     {review.reviewText.length > 100
                       ? review.reviewText.substring(0, 97) + "..."
