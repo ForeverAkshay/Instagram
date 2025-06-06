@@ -122,3 +122,8 @@ export type User = typeof users.$inferSelect;
 export type Brand = typeof brands.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type Category = typeof categories.$inferSelect;
+
+// Extended review type that includes user Instagram handle
+export type ReviewWithUser = Review & {
+  userInstagramHandle: string;
+};

@@ -1,4 +1,4 @@
-import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category, users, brands, reviews, categories } from "@shared/schema";
+import { InsertUser, InsertBrand, InsertReview, InsertCategory, User, Brand, Review, Category, ReviewWithUser, users, brands, reviews, categories } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { db, pool } from "./db";
@@ -24,7 +24,7 @@ export interface IStorage {
 
   // Review operations
   getReview(id: number): Promise<Review | undefined>;
-  getReviewsByBrand(brandId: number): Promise<Review[]>;
+  getReviewsByBrand(brandId: number): Promise<ReviewWithUser[]>;
   getUserReviewForBrand(userId: number, brandId: number): Promise<Review | undefined>;
   createReview(review: InsertReview & { userId: number }): Promise<Review>;
 
@@ -84,7 +84,8 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentIds.users++;
-    const user = { ...insertUser, id };
+    const now = new Date();
+    const user = { ...insertUser, id, createdAt: now };
     this.users.set(id, user);
     return user;
   }
@@ -121,7 +122,14 @@ export class MemStorage implements IStorage {
   async createBrand(insertBrand: InsertBrand): Promise<Brand> {
     const id = this.currentIds.brands++;
     const now = new Date();
-    const brand = { ...insertBrand, id, createdAt: now };
+    const brand = { 
+      ...insertBrand, 
+      id, 
+      createdAt: now,
+      description: insertBrand.description ?? null,
+      logoUrl: insertBrand.logoUrl ?? null,
+      websiteUrl: insertBrand.websiteUrl ?? null
+    };
     this.brands.set(id, brand);
     return brand;
   }
@@ -130,10 +138,17 @@ export class MemStorage implements IStorage {
     return this.reviews.get(id);
   }
 
-  async getReviewsByBrand(brandId: number): Promise<Review[]> {
-    return Array.from(this.reviews.values()).filter(
+  async getReviewsByBrand(brandId: number): Promise<ReviewWithUser[]> {
+    const brandReviews = Array.from(this.reviews.values()).filter(
       (review) => review.brandId === brandId,
     );
+    return brandReviews.map(review => {
+      const user = this.users.get(review.userId);
+      return {
+        ...review,
+        userInstagramHandle: user?.instagramHandle || ''
+      };
+    });
   }
 
   async getUserReviewForBrand(
@@ -150,7 +165,12 @@ export class MemStorage implements IStorage {
   ): Promise<Review> {
     const id = this.currentIds.reviews++;
     const now = new Date();
-    const newReview = { ...review, id, createdAt: now };
+    const newReview = { 
+      ...review, 
+      id, 
+      createdAt: now,
+      imageUrl: review.imageUrl ?? null
+    };
     this.reviews.set(id, newReview);
     return newReview;
   }
@@ -165,7 +185,8 @@ export class MemStorage implements IStorage {
 
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
     const id = this.currentIds.categories++;
-    const category = { ...insertCategory, id };
+    const now = new Date();
+    const category = { ...insertCategory, id, createdAt: now };
     this.categories.set(id, category);
     return category;
   }
@@ -233,8 +254,23 @@ export class DatabaseStorage implements IStorage {
     return review;
   }
 
-  async getReviewsByBrand(brandId: number): Promise<Review[]> {
-    return db.select().from(reviews).where(eq(reviews.brandId, brandId));
+  async getReviewsByBrand(brandId: number): Promise<ReviewWithUser[]> {
+    const result = await db
+      .select({
+        id: reviews.id,
+        userId: reviews.userId,
+        brandId: reviews.brandId,
+        rating: reviews.rating,
+        reviewText: reviews.reviewText,
+        imageUrl: reviews.imageUrl,
+        createdAt: reviews.createdAt,
+        userInstagramHandle: users.instagramHandle,
+      })
+      .from(reviews)
+      .innerJoin(users, eq(reviews.userId, users.id))
+      .where(eq(reviews.brandId, brandId));
+    
+    return result;
   }
 
   async getUserReviewForBrand(userId: number, brandId: number): Promise<Review | undefined> {
