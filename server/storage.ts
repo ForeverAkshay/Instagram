@@ -2,7 +2,7 @@ import { InsertUser, InsertBrand, InsertReview, InsertCategory, InsertContactMes
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { db, pool } from "./db";
-import { eq, ilike, and, or } from "drizzle-orm";
+import { eq, ilike, and, or, desc } from "drizzle-orm";
 import connectPgSimple from "connect-pg-simple";
 
 const MemoryStore = createMemoryStore(session);
@@ -320,6 +320,15 @@ export class DatabaseStorage implements IStorage {
   async createCategory(insertCategory: InsertCategory): Promise<Category> {
     const [category] = await db.insert(categories).values(insertCategory).returning();
     return category;
+  }
+
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
+
+  async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
+    const [message] = await db.insert(contactMessages).values(insertMessage).returning();
+    return message;
   }
 
   // Helper method to create initial default categories
