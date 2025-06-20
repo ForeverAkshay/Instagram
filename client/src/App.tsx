@@ -8,6 +8,7 @@ import HomePage from "@/pages/home-page";
 import AuthPage from "@/pages/auth-page";
 import AboutPage from "@/pages/about-page";
 import ContactPage from "@/pages/contact-page";
+import MessagesPage from "@/pages/admin/messages-page";
 
 import { ProtectedRoute } from "./lib/protected-route";
 import Navbar from "@/components/ui/navbar";
@@ -24,7 +25,7 @@ function AppRoutes() {
         <Route path="/auth" component={AuthPage} />
         <Route path="/about" component={AboutPage} />
         <Route path="/contact" component={ContactPage} />
-
+        <ProtectedRoute path="/admin/messages" component={MessagesPage} />
         <Route component={NotFound} />
       </Switch>
     </>
