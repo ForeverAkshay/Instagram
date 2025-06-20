@@ -49,14 +49,6 @@ export default function Navbar() {
               </span>
             </Link>
             
-            {user && (
-              <Link href="/admin/messages">
-                <span className={`text-sm ${isActive("/admin/messages") ? "font-semibold text-purple-600" : "text-gray-600 hover:text-purple-500"}`}>
-                  Messages
-                </span>
-              </Link>
-            )}
-            
             {user ? (
               <Button 
                 variant="outline" 
@@ -113,15 +105,7 @@ export default function Navbar() {
                   </span>
                 </Link>
               </li>
-              {user && (
-                <li>
-                  <Link href="/admin/messages" onClick={closeMenu}>
-                    <span className={`block py-2 ${isActive("/admin/messages") ? "font-semibold text-purple-600" : "text-gray-600"}`}>
-                      Messages
-                    </span>
-                  </Link>
-                </li>
-              )}
+
               {user ? (
                 <li>
                   <button
