@@ -107,11 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(message);
   });
 
-  app.get("/api/contact", async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const messages = await storage.getContactMessages();
-    res.json(messages);
-  });
+
 
   const httpServer = createServer(app);
   return httpServer;
