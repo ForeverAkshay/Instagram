@@ -3,8 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Calendar, User } from "lucide-react";
 
+type ContactMessage = {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
+};
+
 export default function MessagesPage() {
-  const { data: messages, isLoading, error } = useQuery({
+  const { data: messages, isLoading, error } = useQuery<ContactMessage[]>({
     queryKey: ['/api/admin/contact-messages'],
     retry: false,
   });
@@ -45,7 +53,7 @@ export default function MessagesPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {messages.map((msg: any) => (
+          {messages.map((msg: ContactMessage) => (
             <Card key={msg.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
