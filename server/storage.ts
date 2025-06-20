@@ -34,6 +34,7 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
 
   // Contact message operations
+  getContactMessages(): Promise<ContactMessage[]>;
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
 
   // Session store
@@ -196,7 +197,11 @@ export class MemStorage implements IStorage {
     return category;
   }
 
-
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return Array.from(this.contactMessages.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
 
   async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
     const id = this.currentIds.contactMessages++;
@@ -317,7 +322,9 @@ export class DatabaseStorage implements IStorage {
     return category;
   }
 
-
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
 
   async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
     const [message] = await db.insert(contactMessages).values(insertMessage).returning();
