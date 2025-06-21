@@ -26,10 +26,16 @@ export default function MessagesPage() {
   }
 
   if (error) {
+    const errorMessage = error.message;
+    const isUnauthorized = errorMessage.includes('401') || errorMessage.includes('403');
+    
     return (
       <div className="container mx-auto py-8">
         <div className="text-center text-red-600">
-          Failed to load contact messages. Please make sure you're logged in.
+          {isUnauthorized ? 
+            "Admin access required. Please login with admin credentials." : 
+            "Failed to load contact messages. Please try again."
+          }
         </div>
       </div>
     );
