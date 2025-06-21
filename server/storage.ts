@@ -36,6 +36,9 @@ export interface IStorage {
   // Contact message operations
   getContactMessages(): Promise<ContactMessage[]>;
   createContactMessage(message: InsertContactMessage): Promise<ContactMessage>;
+  
+  // Admin operations
+  createAdminUser(): Promise<void>;
 
   // Session store
   sessionStore: session.Store;
@@ -210,6 +213,19 @@ export class MemStorage implements IStorage {
     this.contactMessages.set(id, message);
     return message;
   }
+
+  async createAdminUser(): Promise<void> {
+    // Create admin user if it doesn't exist
+    const adminExists = await this.getUserByUsername("admin");
+    if (!adminExists) {
+      await this.createUser({
+        username: "admin",
+        password: "admin@3251", // Will be hashed by auth system
+        instagramHandle: "Instagram",
+        isAdmin: true
+      });
+    }
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -331,6 +347,19 @@ export class DatabaseStorage implements IStorage {
     return message;
   }
 
+  async createAdminUser(): Promise<void> {
+    // Create admin user if it doesn't exist
+    const adminExists = await this.getUserByUsername("admin");
+    if (!adminExists) {
+      await this.createUser({
+        username: "admin",
+        password: "admin@3251", // Will be hashed by auth system
+        instagramHandle: "Instagram",
+        isAdmin: true
+      });
+    }
+  }
+
   // Helper method to create initial default categories
   async createDefaultCategories(): Promise<void> {
     const defaultCategories = [
@@ -358,12 +387,14 @@ export class DatabaseStorage implements IStorage {
 // Use the database storage implementation
 export const storage = new DatabaseStorage();
 
-// Initialize default categories
+// Initialize default categories and admin user
 (async () => {
   try {
     await storage.createDefaultCategories();
     console.log("Default categories created or verified");
+    await storage.createAdminUser();
+    console.log("Admin user created or verified");
   } catch (error) {
-    console.error("Error creating default categories:", error);
+    console.error("Error during initialization:", error);
   }
 })();

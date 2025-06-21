@@ -49,7 +49,7 @@ export default function Navbar() {
               </span>
             </Link>
             
-            {user && (
+            {user && user.isAdmin && (
               <Link href="/admin/messages">
                 <span className={`text-sm ${isActive("/admin/messages") ? "font-semibold text-purple-600" : "text-gray-600 hover:text-purple-500"}`}>
                   Messages
@@ -113,7 +113,7 @@ export default function Navbar() {
                   </span>
                 </Link>
               </li>
-              {user && (
+              {user && user.isAdmin && (
                 <li>
                   <Link href="/admin/messages" onClick={closeMenu}>
                     <span className={`block py-2 ${isActive("/admin/messages") ? "font-semibold text-purple-600" : "text-gray-600"}`}>

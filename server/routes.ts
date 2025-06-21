@@ -107,9 +107,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(201).json(message);
   });
 
-  // Admin route to view contact messages (only for authenticated users)
+  // Admin route to view contact messages (only for admin users)
   app.get("/api/admin/contact-messages", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
+    
+    // Check if user is admin
+    const user = await storage.getUser(req.user!.id);
+    if (!user || !user.isAdmin) {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
     const messages = await storage.getContactMessages();
     res.json(messages);
   });
