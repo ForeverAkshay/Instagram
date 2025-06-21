@@ -218,9 +218,13 @@ export class MemStorage implements IStorage {
     // Create admin user if it doesn't exist
     const adminExists = await this.getUserByUsername("admin");
     if (!adminExists) {
+      // Import hash function to properly hash the password
+      const { hashPassword } = await import("./auth");
+      const hashedPassword = await hashPassword("admin@3251");
+      
       await this.createUser({
         username: "admin",
-        password: "admin@3251", // Will be hashed by auth system
+        password: hashedPassword,
         instagramHandle: "Instagram",
         isAdmin: true
       });
@@ -351,9 +355,13 @@ export class DatabaseStorage implements IStorage {
     // Create admin user if it doesn't exist
     const adminExists = await this.getUserByUsername("admin");
     if (!adminExists) {
+      // Import hash function to properly hash the password
+      const { hashPassword } = await import("./auth");
+      const hashedPassword = await hashPassword("admin@3251");
+      
       await this.createUser({
         username: "admin",
-        password: "admin@3251", // Will be hashed by auth system
+        password: hashedPassword,
         instagramHandle: "Instagram",
         isAdmin: true
       });
