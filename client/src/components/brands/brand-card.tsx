@@ -9,10 +9,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import ReviewForm from "./review-form";
-import { StarIcon } from "lucide-react";
+import { StarIcon, Eye } from "lucide-react";
+import { useState } from "react";
 
 export default function BrandCard({ brand }: { brand: Brand }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const reviewsPerPage = 10;
+  
   const { data: reviews } = useQuery<ReviewWithUser[]>({
     queryKey: [`/api/brands/${brand.id}/reviews`],
   });
@@ -21,6 +27,46 @@ export default function BrandCard({ brand }: { brand: Brand }) {
     reviews && reviews.length > 0
       ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
       : 0;
+
+  const totalPages = reviews ? Math.ceil(reviews.length / reviewsPerPage) : 0;
+  const paginatedReviews = reviews?.slice(
+    (currentPage - 1) * reviewsPerPage,
+    currentPage * reviewsPerPage
+  ) || [];
+
+  const renderReview = (review: ReviewWithUser, isCompact = false) => (
+    <div key={review.id} className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
+          <span className="text-sm font-medium">{review.rating}</span>
+        </div>
+        <a
+          href={`https://instagram.com/${review.userInstagramHandle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:underline"
+        >
+          @{review.userInstagramHandle}
+        </a>
+      </div>
+      <div className="text-sm text-gray-600">
+        {isCompact && review.reviewText.length > 100
+          ? review.reviewText.substring(0, 97) + "..."
+          : review.reviewText}
+      </div>
+      {review.imageUrl && (
+        <img 
+          src={review.imageUrl} 
+          alt="Review photo" 
+          className={`mt-2 rounded-md ${isCompact ? 'max-h-32' : 'max-h-48'}`} 
+        />
+      )}
+      <div className="text-xs text-muted-foreground">
+        {new Date(review.createdAt).toLocaleDateString()}
+      </div>
+    </div>
+  );
 
   return (
     <Card>
@@ -44,38 +90,62 @@ export default function BrandCard({ brand }: { brand: Brand }) {
       <CardContent>
         <div className="space-y-4">
           <div>
-            <h3 className="font-medium mb-2">Recent Reviews</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium">Recent Reviews</h3>
+              {reviews && reviews.length > 2 && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Eye className="h-4 w-4" />
+                      View All ({reviews.length})
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl max-h-[80vh]">
+                    <DialogHeader>
+                      <DialogTitle>All Reviews for {brand.name}</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-[60vh] pr-4">
+                      <div className="space-y-4">
+                        {paginatedReviews.map((review) => (
+                          <div key={review.id}>
+                            {renderReview(review, false)}
+                            <Separator className="mt-4" />
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <span className="text-sm text-muted-foreground">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
             <div className="space-y-2">
-              {reviews?.slice(0, 2).map((review) => (
-                <div key={review.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <StarIcon className="h-4 w-4 text-yellow-400 mr-1" />
-                      <span className="text-sm font-medium">{review.rating}</span>
-                    </div>
-                    <a
-                      href={`https://instagram.com/${review.userInstagramHandle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:underline"
-                    >
-                      @{review.userInstagramHandle}
-                    </a>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {review.reviewText.length > 100
-                      ? review.reviewText.substring(0, 97) + "..."
-                      : review.reviewText}
-                  </div>
-                  {review.imageUrl && (
-                    <img 
-                      src={review.imageUrl} 
-                      alt="Review photo" 
-                      className="mt-2 max-h-32 rounded-md" 
-                    />
-                  )}
-                </div>
-              ))}
+              {reviews?.slice(0, 2).map((review) => renderReview(review, true))}
+              {reviews && reviews.length === 0 && (
+                <p className="text-sm text-muted-foreground">No reviews yet</p>
+              )}
             </div>
           </div>
 
