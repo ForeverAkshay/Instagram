@@ -29,19 +29,19 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true,
   };
 
-  const vite = await createViteServer({
-    ...viteConfig,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      },
+const vite = await createViteServer({
+  ...viteConfig,
+  configFile: false,
+  ...serverOptions, // ✅ Spread this instead of using `server: serverOptions`
+  customLogger: {
+    ...viteLogger,
+    error: (msg, options) => {
+      viteLogger.error(msg, options);
+      process.exit(1);
     },
-    server: serverOptions,
-    appType: "custom",
-  });
+  },
+  appType: "custom",
+});
 
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
@@ -71,18 +71,19 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "public");
+  const distPath = path.resolve(__dirname, "..", "client", "dist");
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
 
   app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // Fallback to index.html for SPA routing
   app.use("*", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
+
